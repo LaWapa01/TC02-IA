@@ -9,11 +9,11 @@ num_polygons = 100
 num_vertices = 3  # Triángulos
 mutation_rate = 0.01
 population_size = 60
-generations = 5000
+generations = 10000
 image_size = (128, 128)
 
 # Cargar la imagen de referencia
-reference_image = Image.open('reference.jpg').convert('L')
+reference_image = Image.open('reference_4.png').convert('L')
 reference_image = reference_image.resize(image_size)
 
 def generate_random_polygon():
