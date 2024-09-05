@@ -8,10 +8,10 @@ from matplotlib.animation import FuncAnimation
 POPULATION_SIZE = 100
 NUM_POLYGONS = 75
 VERTICES_PER_POLYGON = 6
-MUTATION_RATE = 0.06
+MUTATION_RATE = 0.04
 GENERATIONS = 5000
 IMAGE_SIZE = (256, 256)
-INITIAL_POLYGON_SIZE = 40
+INITIAL_POLYGON_SIZE = 30
 FINAL_POLYGON_SIZE = 10
 
 # Cargar imagen de referencia en escala de grises
