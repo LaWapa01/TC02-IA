@@ -15,7 +15,7 @@ INITIAL_POLYGON_SIZE = 40
 FINAL_POLYGON_SIZE = 10
 
 # Cargar imagen de referencia en escala de grises
-reference_image = Image.open("reference_3.png").convert("L")
+reference_image = Image.open("imagen.png").convert("L")
 reference_image = reference_image.resize(IMAGE_SIZE)
 reference_array = np.array(reference_image)
 
@@ -54,11 +54,19 @@ def crossover(parent1, parent2):
     child = parent1[:point] + parent2[point:]
     return child
 
-# Mutación de un individuo
-def mutate(individual, size):
+# Mutación de un individuo con variación de tamaños de polígonos
+def mutate(individual, size, generation):
     for i in range(len(individual)):
         if random.random() < MUTATION_RATE:
-            individual[i] = (random_polygon(size), random.randint(0, 255))
+            # Variar el tamaño del polígono antes de mutar
+            new_size = calculate_polygon_size(generation) + random.randint(-5, 5)  # Tamaño variable con mutación
+            if random.random() < 0.5:  # Modificar el polígono actual
+                individual[i] = (random_polygon(new_size), random.randint(0, 255))
+            else:  # Duplicar y modificar ligeramente un polígono
+                duplicated_polygon = individual[i][0][:]
+                individual.append((duplicated_polygon, random.randint(0, 255)))
+                if len(individual) > NUM_POLYGONS:  # Limitar el número de polígonos
+                    individual.pop(random.randint(0, len(individual) - 1))
     return individual
 
 # Crear la población inicial
@@ -87,7 +95,7 @@ def update(frame):
         new_population.append((child, 0))
     
     # Mutación y evaluación
-    new_population = [(mutate(individual, current_polygon_size), 0) for individual, _ in new_population]
+    new_population = [(mutate(individual, current_polygon_size, frame), 0) for individual, _ in new_population]
     new_population = [(individual, evaluate_individual(individual)) for individual, _ in new_population]
     
     # Reemplazar la población antigua
