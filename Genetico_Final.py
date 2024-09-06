@@ -5,23 +5,27 @@ import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 
 
-""" Parámetros del algoritmo genético """
+""" DEFINICIÓN DE PARÁMETROS, CARGA IMAGEN & FUNCIONES AUXILIARES """
 
 TAM_POBLACION = 100         # Número de individuos por generación
 NUM_POLIGONO = 90           # Cantidad de polígonos por individuo, ADN
-VERT_POLIGONO = 4           # Cantidad vértices en los polígonos
+VERT_POLIGONO = 6           # Cantidad vértices en los polígonos
 TASA_MUTACION = 0.04        # Probabilidad de mutación sobre los poligonos en cada individuo 
 GENERACIONES = 3000         # Cantidad de generaciones 
 TAM_IMAGEN = (256, 256)     # Tamaño de la imagen de referencia
-TAM_INICIAL_POLIGONO = 30   # Tamaño inicial para los polígonos
-TAM_FINAL_POLIGONO = 10     # Tamaño final de los polígonos
+TAM_INICIAL_POLIGONO = 80   # Tamaño inicial para los polígonos
+TAM_FINAL_POLIGONO = 20     # Tamaño final de los polígonos
 
 """ Cargar imagen de referencia en escala de grises """
-ima_referencia = Image.open("imagen.png").convert("L")
+ima_referencia = Image.open("imagen.jpg").convert("L")
 ima_referencia = ima_referencia.resize(TAM_IMAGEN)
 array_referencia = np.array(ima_referencia)
 
 # Función para calcular el tamaño de los polígonos en función de la generación
+""" Esta función ajusta el tamaño de los polígonos
+conforme avanzan las generaciones. Los polígonos
+se hacen más pequeños """
+
 def calcular_tam_poligono(generacion):
     return max(TAM_INICIAL_POLIGONO - (generacion * (TAM_INICIAL_POLIGONO - TAM_FINAL_POLIGONO) / GENERACIONES), TAM_FINAL_POLIGONO)
 
@@ -42,6 +46,10 @@ def crear_individuo(tamano):
     return [(random_poligono(tamano), random.randint(0, 255)) for _ in range(NUM_POLIGONO)]
 
 # Función para dibujar un individuo en una imagen
+""" Dibuja los poligonos del individuo en una imagen blanco y negro
+de tamaño 256x256, se usa la librería PIL creando la imagen y 
+pintando los poligonos sobre esta """
+
 def dibujar_individuo(individuo):
     img = Image.new('L', TAM_IMAGEN, 255)
     dibujar = ImageDraw.Draw(img)
@@ -50,21 +58,40 @@ def dibujar_individuo(individuo):
     return np.array(img)
 
 # Función de evaluación (fitness)
+""" Se forma el fitness, esto para evaluar que individuo es el más apto
+para cruzar en las siguientes generaciones, se calcula la diferencia
+entre la imagen de referencia y la generada con los polígonos. A menos
+diferencia entre las imagenes mejor será el fitness """
+
 def evaluar_individuo(individuo):
     dibujo_img = dibujar_individuo(individuo)
     return np.sum(np.abs(array_referencia - dibujo_img))
 
+""" SELECCION, CRUCE & MUTACIÓN """
+
 # Selección de padres basada en torneo
+""" Se hace un "torneo" para seleccionar los individuos, entre
+los individuos seleccionados aleatoriamente se sacan los que 
+tienen mejor fitness para ser los futuros padres """
+
 def seleccion_padres(poblacion, k=3):
     return min(random.sample(poblacion, k), key=lambda ind: ind[1])
 
 # Cruza de dos individuos (crossover)
+""" Se hace la mezcla o cruce de los individuos, el hijo que resulta
+tiene partes de cada uno de los padres, seleccionando una parte o punto
+aleatoria del ADN para corte """
+
 def cruce(padre1, padre2):
     point = random.randint(1, len(padre1) - 1)
     hijo = padre1[:point] + padre2[point:]
     return hijo
 
 # Mutación de un individuo con variación de tamaños de polígonos
+""" Al aplicar la mutación a un individuo en base a la probabilidad
+de la tasa de mutación para que un poligono sea reemplazado, duplicar
+o modificar ligeramente, esto límitado a la cantidad de poligonos del individuo """
+
 def mutacion(individuo, tamano, generacion):
     for i in range(len(individuo)):
         if random.random() < TASA_MUTACION:
